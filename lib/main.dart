@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
                 PostsBloc(getPostsUsecase: usecaseConfig.getPostsUsecase!)),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,

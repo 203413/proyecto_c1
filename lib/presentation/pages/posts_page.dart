@@ -5,9 +5,13 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:proyecto_c1/data/datasources/base_url.dart';
 
 import 'package:proyecto_c1/presentation/blocs/posts_bloc.dart';
+import 'package:proyecto_c1/presentation/pages/add.dart';
+import 'package:proyecto_c1/presentation/pages/edit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class PostsPage extends StatefulWidget {
   const PostsPage({super.key});
@@ -38,6 +42,7 @@ class _PostsPageState extends State<PostsPage> {
   void initState() {
     super.initState();
     someMethod();
+    context.read<PostsBloc>().add(GetPosts());
     subscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
@@ -51,7 +56,6 @@ class _PostsPageState extends State<PostsPage> {
           duration: Duration(seconds: 3),
         );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        context.read<PostsBloc>().add(GetPosts());
       } else {
         const snackBar = SnackBar(
           content: Text(
@@ -97,12 +101,18 @@ class _PostsPageState extends State<PostsPage> {
                         ElevatedButton(
                           onPressed: () {
                             print(post.id.toString());
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        put(argument: post.id.toString())));
                           },
                           child: Text('Edit'),
                         ),
                         ElevatedButton(
                           onPressed: () {
                             print('Delete');
+                            delete(post.id.toString());
                           },
                           child: Text('Delete'),
                         ),
@@ -121,6 +131,27 @@ class _PostsPageState extends State<PostsPage> {
           return Container();
         }
       }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => add()));
+        },
+        child: Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
+  }
+
+  Future delete(String id) async {
+    var url = Uri.https(baseurl, '/api/v1/location/$id/');
+    var response = await http.delete(url);
+
+    if (response.statusCode == 204) {
+      print('Datos eliminados exitosamente');
+      context.read<PostsBloc>().add(GetPosts());
+    } else {
+      print(
+          'Error al eliminar los datos. Código de estado: ${response.statusCode}');
+    }
   }
 }
